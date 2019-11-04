@@ -1,18 +1,17 @@
+from generator import Generator
+
 class Dam():
-    def __init__(self):
+    def __init__(self, number_of_generators=8):
         self.MW = 0
         self.forbay = 0
         self.tailbay = 0
         self.spill = 0
+        self.generators = list()
+        for x in range(number_of_generators):
+            self.generators.append(Generator())
 
-    def get_MW(self):
-        return self.MW
+        def 
 
-    def get_forbay(self):
-        return self.forbay
-    
-    def get_tailbay(self):
-        return self.tailbay
 
-    def get_spill(self):
-        return self.spill
+
+

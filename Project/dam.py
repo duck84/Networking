@@ -18,6 +18,8 @@ class Dam():
 
     def request(self, request_MW):
         for gen in self.generators:
+            gen.set_setpoint(0)
+        for gen in self.generators:
             if gen.highLimit < request_MW:
                 gen.set_setpoint(gen.highLimit)
                 request_MW -= gen.highLimit
@@ -30,8 +32,6 @@ class Dam():
             if request_MW == 0:
                 break
         time.sleep(1)
-
-
 
     def update(self):
         while self:

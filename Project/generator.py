@@ -39,11 +39,14 @@ class Generator():
     def set_setpoint(self, setpoint):
         if self.lowLimit <= setpoint and setpoint <= self.highLimit:
             self.setpoint = setpoint
-            testThread = threading.Thread(target=self.ramping)
-            testThread.start()
+        elif setpoint == 0:
+            self.setpoint = 0
         else:
             print("Not a valid setpoint: " + str(setpoint) + "\nPlease set between " 
             + str(self.lowLimit) + " and " + str(self.highLimit))
+        
+        testThread = threading.Thread(target=self.ramping)
+        testThread.start()
 
 
 #test = Generator()

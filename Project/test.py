@@ -47,12 +47,19 @@ class TestDamClassMethods(unittest.TestCase):
         self.assertEqual(count, 8)
 
     def test_Dam_generates_450_MW(self):
-
         self.testDam.request(450)
         total_MW = self.testDam.MW
     
         self.assertEqual(total_MW, 450)
-        del self.testDam
+
+    def test_Dam_reduces_from_450_to_270(self):
+        self.testDam.request(450)
+        total_MW = self.testDam.MW
+        self.assertEqual(total_MW, 450)
+
+        self.testDam.request(270)
+        total_MW = self.testDam.MW
+        self.assertEqual(total_MW, 270)
 
 if __name__ == '__main__':
     unittest.main()

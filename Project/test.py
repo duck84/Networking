@@ -40,11 +40,19 @@ class TestGeneratorClassVariables(unittest.TestCase):
 
 class TestDamClassMethods(unittest.TestCase):
     def setUp(self):
-        self.testDam = Dam()
+        self.testDam = Dam(ramping=0)
 
     def test_Dam_has_default_number_of_generators(self):
         count = sum(isinstance(x, Generator) for x in self.testDam.generators)
         self.assertEqual(count, 8)
+
+    def test_Dam_generates_450_MW(self):
+
+        self.testDam.request(450)
+        total_MW = self.testDam.MW
+    
+        self.assertEqual(total_MW, 450)
+        del self.testDam
 
 if __name__ == '__main__':
     unittest.main()

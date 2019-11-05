@@ -42,7 +42,7 @@ class Generator():
             testThread = threading.Thread(target=self.ramping)
             testThread.start()
         else:
-            print("Not a valid setpoint. Please set between " 
+            print("Not a valid setpoint: " + str(setpoint) + "\nPlease set between " 
             + str(self.lowLimit) + " and " + str(self.highLimit))
 
 

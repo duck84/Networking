@@ -41,6 +41,9 @@ class Dam():
             if calculated_MW != self.MW:
                 self.MW = calculated_MW
 
+    def addGenerator(self, generator):
+            self.generators.append(generator)
+
 
 
 

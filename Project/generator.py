@@ -1,5 +1,6 @@
 import threading
 import time
+import json
 
 class Generator():
     def __init__(self, head=80, rampingSpeed = 1):
@@ -36,6 +37,18 @@ class Generator():
     def status(self):
         return self.on
 
+    def report(self):
+        status = {}
+        status['on'] = self.on 
+        status['head'] = self.head
+        status['setpoint'] = self.setpoint
+        status['MW'] = self.MW
+        status['flow'] = self.flow
+        status['highLimit'] = self.highLimit
+        status['lowLimit'] = self.lowLimit
+        status['rampingSpeed'] = self.rampingSpeed 
+        return status
+
     def set_setpoint(self, setpoint):
         if self.lowLimit <= setpoint and setpoint <= self.highLimit:
             self.setpoint = setpoint
@@ -49,8 +62,12 @@ class Generator():
         testThread.start()
 
 
-#test = Generator()
-
+test = Generator()
+report = test.report()
+print(report)
+r = json.dumps(report)
+loaded = json.loads(r)
+print(loaded)
 
 #while True:
 #    command = input("Command: ")

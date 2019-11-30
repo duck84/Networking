@@ -31,7 +31,7 @@ class PowerPlant():
 
     def getStatus(self):
         for generator, values in generator_data.items():
-            print("Unit: ", values['name'], 'is on: ', values['status'])
+            print("Unit: ", values['name'], 'is on: ', values['status'], " MW are: ", values['MW'], ' Flow is: ', values['flow'])
 
 
 
@@ -47,9 +47,19 @@ hydro = PowerPlant()
 def command_thread():
     while(True):
         command = input('>>')
-        if command == "set":
-            hydro.setTotalMW()
-            hydro.setTotalFlow()
+        if "set" in command:
+            try:
+                generator = command[4:14]
+                setpoint = int(command[15:])
+            except:
+                print("Input error with command. Please enter set <Generator#> <setpoint>")
+            if generator in clientDict:
+                print("Setting ", generator, " to ", setpoint)
+                client = clientDict[generator]
+                client.send(('setpoint ' + str(setpoint)).encode())
+            else:
+                clients = list(clientDict.keys())
+                print("Please select a generator currently connected: ", clients)
         if command == "status":
             hydro.getStatus()
         if command == "get":
@@ -62,7 +72,7 @@ def command_thread():
                 connects.send("Test message!".encode())
         if "exit" in command:
             generator = command[5:]
-            if generator in generatorList:
+            if generator in clientDict:
                 print('Removing: ', generator)
                 clientDict[generator].shutdown(socket.SHUT_RDWR)
                 clientDict[generator].close()
@@ -72,7 +82,7 @@ def command_thread():
                 print("Please select a generator currently connected: ", clients)
         if "shut off" in command:
             generator = command[9:]
-            if generator in generatorList:
+            if generator in clientDict:
                 print('Shutting down: ', generator)
                 client = clientDict[generator]
                 client.send('shutOff'.encode())
@@ -145,23 +155,6 @@ listeningThread.setDaemon(True)
 listeningThread.start()
 
 
-#while(True):
-#    conn, addr = s.accept()
-#    msg = conn.recv(1024)
-#    name = msg.decode()
-#    if name in generatorList and name not in clientDict:
-#        clientDict[name] = conn
-#        print(name, " has connected from ", addr)
-#        conn.send("Connection to Power Plant".encode())
-#        threading.Thread(target=new_client, args=(conn, addr, name)).start()
-#    elif name in clientDict:
-#        print(name, " is already connected!")
-#        conn.close()
-#    else:
-#        print("A non generator tried to connect: ", name)
-#        conn.close()
-
-
-print("Ending Program")
+print("Power plant started")
 
 

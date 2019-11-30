@@ -16,8 +16,6 @@ s.connect((host, port))
 s.send(('Generator' + sys.argv[3]).encode())
 
 value = (generatorOne.on)
-generatorOne.startup()
-generatorOne.set_setpoint(50)
 
 
 def sendUpdate():
@@ -40,6 +38,9 @@ def receiveData():
             generatorOne.shutDown()
         if msg == 'turn on':
             generatorOne.startup()
+        if msg[:8] == 'setpoint':
+            setpoint = int(msg[9:])
+            generatorOne.set_setpoint(setpoint)
     print("Closing the connection")
     s.close()
 
@@ -51,5 +52,4 @@ updateThread.start()
 listenThread = threading.Thread(target=receiveData)
 listenThread.start()
 
-time.sleep(30)
-generatorOne.set_setpoint(0)
+print("Generator is on and running")

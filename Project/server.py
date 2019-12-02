@@ -31,7 +31,7 @@ class PowerPlant():
 
     def getStatus(self):
         for generator, values in generator_data.items():
-            print("Unit: ", values['name'], 'is on: ', values['status'], " MW are: ", values['MW'], ' Flow is: ', values['flow'])
+            print("Generator", values['name'], 'is on:', values['status'], " MW are:", values['MW'], ' Flow is:', values['flow'])
 
 
 
@@ -42,11 +42,22 @@ generatorList = ['Generator1','Generator2','Generator3',
 
 generator_data = {}
 
+commandList = {'set:':"Sends a setpoint to a generator",
+               'status:':'Returns the status of all the generators',
+               'send:':'Sends a message to the generator',
+               'disconnect:':'Disconnects a generator',
+               'shut off:':'Turns a generator off',
+               'turn on:':'Turns a generator on',
+               'power down:':'Powers down the power plant'}
+
 hydro = PowerPlant()
 
 def command_thread():
     while(True):
         command = input('>>')
+        if command == "help":
+            for order, description in commandList.items():
+                print(order, description)
         if "set" in command:
             try:
                 generator = command[4:14]
@@ -70,7 +81,7 @@ def command_thread():
         if command == "send":
             for keys, connects in clientDict.items():
                 connects.send("Test message!".encode())
-        if "exit" in command:
+        if "disconnect" in command:
             generator = command[5:]
             if generator in clientDict:
                 print('Removing: ', generator)
@@ -114,11 +125,16 @@ def new_client(clientsocket,addr, name):
         if not msg:
             break
         msg = msg.decode("utf-8")
-        msg = json.loads(msg)
+        try:
+            msg = json.loads(msg)
+        except ValueError as e:
+            print(msg)
         generator_data[name] = msg
     clientsocket.close()
     print('Removing ', name, ' from generator data')
     del generator_data[name]
+    if name in clientDict:
+        del clientDict[name]
 
 def listen_thread():
     while(True):

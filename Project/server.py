@@ -48,7 +48,8 @@ commandList = {'set:':"Sends a setpoint to a generator",
                'disconnect:':'Disconnects a generator',
                'shut off:':'Turns a generator off',
                'turn on:':'Turns a generator on',
-               'power down:':'Powers down the power plant'}
+               'power down:':'Powers down the power plant',
+               'exit':'Closes all connections and disconnects the server'}
 
 hydro = PowerPlant()
 
@@ -73,14 +74,9 @@ def command_thread():
                 print("Please select a generator currently connected: ", clients)
         if command == "status":
             hydro.getStatus()
-        if command == "get":
-            hydro.setTotalMW()
-            hydro.setTotalFlow()
-            hydro.getMW()
-            hydro.getFlow()
-        if command == "send":
+        if "send" in command:
             for keys, connects in clientDict.items():
-                connects.send("Test message!".encode())
+                connects.send(command.encode())
         if "disconnect" in command:
             generator = command[5:]
             if generator in clientDict:
@@ -109,7 +105,7 @@ def command_thread():
             else:
                 clients = list(clientDict.keys())
                 print("Please select a generator currently connected: ", clients)
-        if command == "power down":
+        if command == "exit":
             print("Shutting down the Plant")
             for generator, values in generator_data.items():
                 clientDict[generator].shutdown(socket.SHUT_RDWR)
@@ -117,6 +113,11 @@ def command_thread():
             s.shutdown(socket.SHUT_RDWR)
             s.close()
             break
+        if "power down" in command:
+            for generator, values in generator_data.items():
+                print('Shutting down: ', generator)
+                client = clientDict[generator]
+                client.send('shutOff'.encode())
         
 
 def new_client(clientsocket,addr, name):

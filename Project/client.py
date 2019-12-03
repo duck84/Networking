@@ -42,6 +42,15 @@ def sendUpdate():
             if e == errno.EPIPE:
                 print("Disconnected from server")
             break
+    print("No longer sending updates")
+
+class stdout_():
+
+    def __init__(self, sock_resp):
+        self.sock_resp = sock_resp
+
+    def write(self, mes):
+        self.sock_resp.send(mes.encode())
 
 def receiveData():
     while s:
@@ -51,17 +60,28 @@ def receiveData():
         msg = data.decode()
         if msg == 'shutOff':
             generatorOne.shutDown()
+            print("Shutting down generator from server.")
         if msg == 'turn on':
             generatorOne.startup()
+            print("Turning on from server.")
         if msg[:8] == 'setpoint':
             setpoint = int(msg[9:])
+            old_out = sys.stdout
+            new_out = stdout_(s)
+            sys.stdout = new_out    
             generatorOne.set_setpoint(setpoint)
+            sys.stdout = old_out
         if msg[:4] == 'send':
-            print(msg[5:])
+            print(msg[4:])
     print("Closing the connection")
     s.close()
+    global connectionFlag
+    connectionFlag = False
+
+
 
 def command_thread():
+    global connectionFlag
     while(True):
         command = input('>>')
         if "send" in command:
@@ -70,14 +90,19 @@ def command_thread():
             connectionFlag = False
             s.shutdown(socket.SHUT_RDWR)
             s.close()
-        if command == 'connect':
+        if command == 'connect' and connectionFlag == False:
             connectionFlag = True
             connect()
+        elif command == 'connect' and connectionFlag == True:
+            print('already connected')
         if command == "status":
             print(generatorOne.report())
+        if "change port" in command:
+            sys.argv[2] = int(command[12:])
+            print('changing port to ' + command[12:])
 
 
-connectionFlag = True
+connectionFlag = False
 
 commandThread = threading.Thread(target=command_thread)
 commandThread.start()

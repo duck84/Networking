@@ -38,7 +38,7 @@ class Generator():
         self.set_flow()
 
     def set_flow(self):
-        self.flow = (self.MW * 1000) / (8 * self.head)
+        self.flow = (self.MW * 100) / (8 * self.head)
 
 
     def status(self):
@@ -58,9 +58,15 @@ class Generator():
         return status
 
     def startup(self):
+        if self.on is True:
+            print("Generator is already on.")
+            return
         self.on = True
 
     def shutDown(self):
+        if self.on is False:
+            print('Generator is already off.')
+            return
         # make sure unit is not ramping up and down
         while self.rampingFlag:
             pass
@@ -72,7 +78,9 @@ class Generator():
 
     def set_setpoint(self, setpoint):
         self.rampingFlag = False
-        if self.lowLimit <= setpoint and setpoint <= self.highLimit:
+        if not self.on:
+            print("Generator is currently off. Please turn on first.")
+        elif self.lowLimit <= setpoint and setpoint <= self.highLimit:
             self.setpoint = setpoint
         elif setpoint == 0:
             self.setpoint = 0

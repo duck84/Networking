@@ -113,4 +113,4 @@ connectionFlag = False
 commandThread = threading.Thread(target=command_thread)
 commandThread.start()
 
-print("Connected to Power Plant.")
+print("Welcome to the Bonneville Power Authority.")

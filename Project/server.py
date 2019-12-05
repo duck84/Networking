@@ -33,28 +33,22 @@ class PowerPlant():
         for generator, values in generator_data.items():
             print("Generator", values['name'], 'is on:', values['status'], " MW are:", values['MW'], ' Flow is:', values['flow'])
 
-    def setPowerPlant(self, MW):
-        if MW == 0:
-            for generator, values in generator_data.items():
-                print('Shutting down: ', generator)
-                client = clientDict[generator]
-                client.send('shutOff'.encode())
-                return
-                
+    def setPowerPlant(self, MW):                
         for generator, values in generator_data.items():
             MW = int(MW)
-            if MW <= 0:
-                client.send(('setpoint ' + str(0)).encode())
-                print("Setting " + generator + " to: " + str(0))
             setpoint = values['highLimit']
             lowLimit = values['lowLimit']
-            if MW < setpoint and MW > lowLimit:
-                setpoint = MW
-            elif MW < setpoint and MW < lowLimit:
-                setpoint = lowLimit
             if generator not in clientDict:
                 continue
             client = clientDict[generator]
+            if MW <= 0:
+                client.send(('setpoint ' + str(0)).encode())
+                print("Setting " + generator + " to: " + str(0))
+                continue
+            elif MW < setpoint and MW > lowLimit:
+                setpoint = MW
+            elif MW < setpoint and MW < lowLimit:
+                setpoint = lowLimit
             if not values['status']:
                 client.send('turn on'.encode())
                 print("Turning on: " + generator)
@@ -178,18 +172,19 @@ def new_power_authority(clientsocket,addr, name):
         if not msg:
             break
         msg = msg.decode("utf-8")
-        if msg == "status":
-            hydro.setTotalFlow()
-            hydro.setTotalMW()
-            output = (hydro.getMW(), hydro.getFlow())
-            clientsocket.send(json.dumps(output).encode())
-        if 'set' in msg:
-            paramaters = msg.split()
-            hydro.setPowerPlant(paramaters[1])
         try:
             msg = json.loads(msg)
         except ValueError as e:
-            print(msg)
+            if msg == "status":
+                hydro.setTotalFlow()
+                hydro.setTotalMW()
+                output = (hydro.getMW(), hydro.getFlow())
+                clientsocket.send(json.dumps(output).encode())
+            elif 'set' in msg:
+                paramaters = msg.split()
+                hydro.setPowerPlant(paramaters[1])
+            else:
+                print(msg)
     clientsocket.close()
     print('Disconnecting from', name)
     if name in clientDict:

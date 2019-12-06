@@ -37,10 +37,7 @@ def connect():
         print("Trying to connect on: ", port, "make sure the port is 1937 and server is running" )
         connectionFlag = False
 
-
-
 value = (generatorOne.on)
-
 
 def sendUpdate():
     while(s):
@@ -57,7 +54,6 @@ def sendUpdate():
     print("No longer sending updates")
 
 class stdout_():
-
     def __init__(self, sock_resp):
         self.sock_resp = sock_resp
 
@@ -66,11 +62,15 @@ class stdout_():
 
 def receiveData():
     while s:
-        data = s.recv(1024)
+        try:
+            data = s.recv(1024)
+        except OSError as e:
+            break
         if not data:
             break
         msg = data.decode()
-        if msg == 'shutOff':
+        parameters = msg.split()
+        if parameters[0] == 'shutOff':
             old_out = sys.stdout
             new_out = stdout_(s)
             sys.stdout = new_out    
@@ -79,7 +79,7 @@ def receiveData():
             print("Shutting down generator from server.")
             s.send(("Generator" + sys.argv[3] + " is turned off.").encode())            
 
-        if msg == 'turn on':
+        if parameters[0] == 'turnOn':
             old_out = sys.stdout
             new_out = stdout_(s)
             sys.stdout = new_out
@@ -87,8 +87,8 @@ def receiveData():
             sys.stdout = old_out
             print("Turning on from server.")
 
-        if msg[:8] == 'setpoint':
-            setpoint = int(msg[9:])
+        if parameters[0] == 'setpoint':
+            setpoint = int(parameters[1])
             print("Setting the unit's setpoint to:", setpoint)
             old_out = sys.stdout
             new_out = stdout_(s)
@@ -100,6 +100,9 @@ def receiveData():
         if msg[:4] == 'send':
             print(msg[4:])
 
+        if msg == 'Already connected':
+            print(msg)
+
         if msg == 'connected':
             print('Connected to master station on', host, port)
 
@@ -107,8 +110,6 @@ def receiveData():
     s.close()
     global connectionFlag
     connectionFlag = False
-
-
 
 def command_thread():
     global connectionFlag
@@ -118,12 +119,13 @@ def command_thread():
             s.send(command[5:].encode())
         if command == "disconnect":
             connectionFlag = False
-            s.shutdown(socket.SHUT_RDWR)
-            s.close()
-        if command == 'connect' and connectionFlag == False:
+            try:
+                s.shutdown(socket.SHUT_RDWR)
+                s.close()
+            except OSError as e:
+                pass
+        if command == 'connect':
             connect()
-        elif command == 'connect' and connectionFlag == True:
-            print('already connected')
         if command == "status":
             print(generatorOne.report())
             print("Connected to master station:", connectionFlag)
@@ -137,4 +139,4 @@ connectionFlag = False
 commandThread = threading.Thread(target=command_thread)
 commandThread.start()
 
-print("Generator is on and running")
+print("Generator is on standby")

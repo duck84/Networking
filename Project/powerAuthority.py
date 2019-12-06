@@ -62,9 +62,12 @@ class stdout_():
 
 def receiveData():
     while s:
-        data = s.recv(1024)
-        if not data:
+        try:
+            data = s.recv(1024)
+        except OSError as e:
             break
+        if not data:
+            break 
         msg = data.decode()
 
         try:
@@ -91,21 +94,28 @@ def command_thread():
         if "send" in command:
             s.send(command[5:].encode())
         if command == "disconnect":
-            connectionFlag = False
-            s.shutdown(socket.SHUT_RDWR)
-            s.close()
-        if command == 'connect' and connectionFlag == False:
+            try:
+                connectionFlag = False
+                s.shutdown(socket.SHUT_RDWR)
+                s.close()
+            except OSError as e:
+                print("Already disconnected")
+        if command == 'connect':
             connect()
-        elif command == 'connect' and connectionFlag == True:
-            print('already connected')
         if command == "status":
             print("Getting report from power plant.")
-            s.send(command.encode())
+            try:
+                s.send(command.encode())
+            except OSError as e:
+                print("Check for connection.")
         if "change port" in command:
             sys.argv[2] = int(command[12:])
             print('changing port to ' + command[12:])
         if "set" in command:
-            s.send(command.encode())
+            try:
+                s.send(command.encode())
+            except OSError as e:
+                print("Check for connection.")
 
 
 connectionFlag = False
